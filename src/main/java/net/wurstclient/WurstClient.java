@@ -23,7 +23,6 @@ import net.minecraft.client.resource.language.I18n;
 import net.minecraft.client.util.InputUtil;
 import net.wurstclient.altmanager.AltManager;
 import net.wurstclient.altmanager.Encryption;
-import net.wurstclient.analytics.WurstAnalytics;
 import net.wurstclient.clickgui.ClickGui;
 import net.wurstclient.command.CmdList;
 import net.wurstclient.command.CmdProcessor;
@@ -58,8 +57,6 @@ public enum WurstClient
 	
 	public static final String VERSION = "7.37";
 	public static final String MC_VERSION = "1.20.1";
-	
-	private WurstAnalytics analytics;
 	private EventManager eventManager;
 	private AltManager altManager;
 	private HackList hax;
@@ -77,7 +74,6 @@ public enum WurstClient
 	
 	private boolean enabled = true;
 	private static boolean guiInitialized;
-	private WurstUpdater updater;
 	private ProblematicResourcePackDetector problematicPackDetector;
 	private Path wurstFolder;
 	
@@ -90,11 +86,6 @@ public enum WurstClient
 		MC = MinecraftClient.getInstance();
 		IMC = (IMinecraftClient)MC;
 		wurstFolder = createWurstFolder();
-		
-		String trackingID = "UA-52838431-5";
-		String hostname = "client.wurstclient.net";
-		Path analyticsFile = wurstFolder.resolve("analytics.json");
-		analytics = new WurstAnalytics(trackingID, hostname, analyticsFile);
 		
 		eventManager = new EventManager(this);
 		
@@ -138,9 +129,6 @@ public enum WurstClient
 		eventManager.add(PreMotionListener.class, rotationFaker);
 		eventManager.add(PostMotionListener.class, rotationFaker);
 		
-		updater = new WurstUpdater();
-		eventManager.add(UpdateListener.class, updater);
-		
 		problematicPackDetector = new ProblematicResourcePackDetector();
 		problematicPackDetector.start();
 		
@@ -151,9 +139,7 @@ public enum WurstClient
 		zoomKey = new KeyBinding("key.wurst.zoom", InputUtil.Type.KEYSYM,
 			GLFW.GLFW_KEY_V, "Zoom");
 		KeyBindingHelper.registerKeyBinding(zoomKey);
-		
-		analytics.trackPageView("/mc" + MC_VERSION + "/v" + VERSION,
-			"Wurst " + VERSION + " MC" + MC_VERSION);
+
 	}
 	
 	private Path createWurstFolder()
@@ -186,11 +172,6 @@ public enum WurstClient
 			return key;
 		
 		return I18n.translate(key);
-	}
-	
-	public WurstAnalytics getAnalytics()
-	{
-		return analytics;
 	}
 	
 	public EventManager getEventManager()
@@ -315,11 +296,6 @@ public enum WurstClient
 			hax.panicHack.setEnabled(true);
 			hax.panicHack.onUpdate();
 		}
-	}
-	
-	public WurstUpdater getUpdater()
-	{
-		return updater;
 	}
 	
 	public ProblematicResourcePackDetector getProblematicPackDetector()

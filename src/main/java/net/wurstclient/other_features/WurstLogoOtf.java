@@ -59,7 +59,7 @@ public final class WurstLogoOtf extends OtherFeature
 		ALWAYS("Always", () -> true),
 		
 		ONLY_OUTDATED("Only when outdated",
-			() -> WURST.getUpdater().isOutdated());
+			() -> false);
 		
 		private final String name;
 		private final BooleanSupplier visible;
