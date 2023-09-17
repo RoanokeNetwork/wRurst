@@ -18,6 +18,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
 import java.util.stream.Collectors;
 
+import net.wurstclient.settings.CheckboxSetting;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 
@@ -62,10 +63,18 @@ public final class SearchHack extends Hack
 		"The maximum number of blocks to display.\n"
 			+ "Higher values require a faster computer.",
 		4, 3, 6, 1, ValueDisplay.LOGARITHMIC);
+
+	private final CheckboxSetting onlyExposed = new CheckboxSetting(
+			"Only show exposed",
+			"Only shows ores/blocks that would be visible in caves. This can help against"
+					+ " anti-X-Ray plugins.\n\n"
+					+ "Remember to restart Search when changing this setting.",
+			false);
+
 	private int prevLimit;
 	private boolean notify;
 	
-	private final HashMap<ChunkPos, ChunkSearcher> searchers = new HashMap<>();
+	private final HashMap<ChunkPos, ExposedBlockChunkSearcher> searchers = new HashMap<>();
 	private final Set<ChunkPos> chunksToUpdate =
 		Collections.synchronizedSet(new HashSet<>());
 	private ExecutorService threadPool;
@@ -84,6 +93,7 @@ public final class SearchHack extends Hack
 		addSetting(block);
 		addSetting(area);
 		addSetting(limit);
+		addSetting(onlyExposed);
 	}
 	
 	@Override
@@ -147,7 +157,7 @@ public final class SearchHack extends Hack
 		boolean searchersChanged = false;
 		
 		// remove outdated ChunkSearchers
-		for(ChunkSearcher searcher : new ArrayList<>(searchers.values()))
+		for(ExposedBlockChunkSearcher searcher : new ArrayList<>(searchers.values()))
 		{
 			boolean remove = false;
 			ChunkPos searcherPos = searcher.getPos();
@@ -183,8 +193,8 @@ public final class SearchHack extends Hack
 			if(searchers.containsKey(chunkPos))
 				continue;
 			
-			ChunkSearcher searcher =
-				new ChunkSearcher(chunk, currentBlock, dimension);
+			ExposedBlockChunkSearcher searcher =
+				new ExposedBlockChunkSearcher(chunk, currentBlock, dimension);
 			searchers.put(chunkPos, searcher);
 			searcher.startSearching(threadPool);
 			searchersChanged = true;
@@ -282,8 +292,8 @@ public final class SearchHack extends Hack
 	
 	private boolean areAllChunkSearchersDone()
 	{
-		for(ChunkSearcher searcher : searchers.values())
-			if(searcher.getStatus() != ChunkSearcher.Status.DONE)
+		for(ExposedBlockChunkSearcher searcher : searchers.values())
+			if(searcher.getStatus() != ExposedBlockChunkSearcher.Status.DONE)
 				return false;
 			
 		return true;
@@ -296,7 +306,7 @@ public final class SearchHack extends Hack
 			Comparator.comparingInt(pos -> eyesPos.getManhattanDistance(pos));
 		
 		getMatchingBlocksTask = forkJoinPool.submit(() -> searchers.values()
-			.parallelStream().flatMap(ChunkSearcher::getMatchingBlocks)
+			.parallelStream().flatMap(ExposedBlockChunkSearcher::getMatchingBlocks)
 			.sorted(comparator).limit(limit.getValueLog())
 			.collect(Collectors.toCollection(HashSet::new)));
 	}
