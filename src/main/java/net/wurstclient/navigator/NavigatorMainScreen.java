@@ -340,6 +340,7 @@ public final class NavigatorMainScreen extends NavigatorScreen
 		MatrixStack matrixStack = context.getMatrices();
 		ClickGui gui = WurstClient.INSTANCE.getGui();
 		float[] bgColor = gui.getBgColor();
+		float[] acColor = gui.getAcColor();
 		int txtColor = gui.getTxtColor();
 		float opacity = gui.getOpacity();
 		boolean clickTimerRunning = clickTimer != -1;
@@ -396,7 +397,7 @@ public final class NavigatorMainScreen extends NavigatorScreen
 			// RenderSystem.setShaderColor(1, 0, 0,
 			// hovering ? opacity * 1.5F : opacity);
 			// else
-			RenderSystem.setShaderColor(0, 1, 0,
+			RenderSystem.setShaderColor(acColor[0], acColor[1], acColor[2],
 				renderAsHovered ? opacity * 1.5F : opacity);
 		else
 			RenderSystem.setShaderColor(bgColor[0], bgColor[1], bgColor[2],
@@ -429,7 +430,6 @@ public final class NavigatorMainScreen extends NavigatorScreen
 		int bx1 = area.x + area.width - area.height;
 		int by1 = area.y + 2;
 		int by2 = by1 + area.height - 4;
-		float[] acColor = WurstClient.INSTANCE.getGui().getAcColor();
 		RenderSystem.setShaderColor(acColor[0], acColor[1], acColor[2], 0.5F);
 		bufferBuilder.begin(VertexFormat.DrawMode.DEBUG_LINES,
 			VertexFormats.POSITION);
@@ -451,7 +451,7 @@ public final class NavigatorMainScreen extends NavigatorScreen
 		float ay2 = area.y + twoThrirds;
 		
 		// arrow
-		RenderSystem.setShaderColor(0, hovering ? 1 : 0.85F, 0, 1);
+		RenderSystem.setShaderColor(1, hovering ? 1 : 0.85F, 1, 1);
 		bufferBuilder.begin(VertexFormat.DrawMode.TRIANGLES,
 			VertexFormats.POSITION);
 		bufferBuilder.vertex(matrix, ax1, ay1, 0).next();

@@ -168,7 +168,7 @@ public final class NavigatorFeatureScreen extends NavigatorScreen
 			// add keybind button
 			ButtonData addKeybindButton =
 				new ButtonData(area.x + area.width - 16,
-					area.y + getStringHeight(text) - 7, 12, 8, "+", 0x00ff00)
+					area.y + getStringHeight(text) - 7, 12, 8, "+", 0x0000000)
 				{
 					@Override
 					public void press()

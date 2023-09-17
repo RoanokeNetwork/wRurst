@@ -163,6 +163,8 @@ public final class FeatureButton extends Component
 		int y1, int y2, boolean hHack)
 	{
 		float[] bgColor = GUI.getBgColor();
+		float[] acColor = GUI.getAcColor();
+
 		float opacity = GUI.getOpacity();
 		
 		Matrix4f matrix = matrixStack.peek().getPositionMatrix();
@@ -176,7 +178,7 @@ public final class FeatureButton extends Component
 			// if(feature.isBlocked())
 			// glColor4f(1, 0, 0, hHack ? opacity * 1.5F : opacity);
 			// else
-			RenderSystem.setShaderColor(0, 1, 0,
+			RenderSystem.setShaderColor(acColor[0], acColor[1], acColor[2],
 				hHack ? opacity * 1.5F : opacity);
 		else
 			RenderSystem.setShaderColor(bgColor[0], bgColor[1], bgColor[2],
@@ -268,7 +270,7 @@ public final class FeatureButton extends Component
 		{
 			ya1 = y1 + 3.5F;
 			ya2 = y2 - 3;
-			RenderSystem.setShaderColor(0, hSettings ? 1 : 0.85F, 0, 1);
+			RenderSystem.setShaderColor(1, hSettings ? 1 : 0.85F, 1, 1);
 		}
 		
 		// arrow
