@@ -18,7 +18,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
 import java.util.stream.Collectors;
 
-import net.wurstclient.settings.CheckboxSetting;
+import net.wurstclient.settings.*;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 
@@ -43,17 +43,24 @@ import net.wurstclient.events.PacketInputListener;
 import net.wurstclient.events.RenderListener;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
-import net.wurstclient.settings.BlockSetting;
-import net.wurstclient.settings.ChunkAreaSetting;
-import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
 import net.wurstclient.util.*;
 
 public final class SearchHack extends Hack
 	implements UpdateListener, PacketInputListener, RenderListener
 {
-	private final BlockSetting block = new BlockSetting("Block",
-		"The type of block to search for.", "minecraft:diamond_ore", false);
+
+	private final BlockListSetting blocks = new BlockListSetting("Blocks",
+			"A list of blocks to search for.",
+			"minecraft:ancient_debris", "minecraft:chest",
+			"minecraft:clay", "minecraft:coal_block",
+			"minecraft:deepslate_diamond_ore",
+			"minecraft:deepslate_lapis_ore",
+			"minecraft:diamond_block",
+			"minecraft:diamond_ore",
+			"minecraft:enchanting_table", "minecraft:end_portal",
+			"minecraft:ender_chest", "minecraft:lapis_block",
+			"minecraft:lapis_ore");
 	
 	private final ChunkAreaSetting area = new ChunkAreaSetting("Area",
 		"The area around the player to search in.\n"
@@ -90,7 +97,7 @@ public final class SearchHack extends Hack
 	{
 		super("Search");
 		setCategory(Category.RENDER);
-		addSetting(block);
+		addSetting(blocks);
 		addSetting(area);
 		addSetting(limit);
 		addSetting(onlyExposed);
@@ -99,7 +106,7 @@ public final class SearchHack extends Hack
 	@Override
 	public String getRenderName()
 	{
-		return getName() + " [" + block.getBlockName().replace("minecraft:", "")
+		return getName() + " [" + blocks.getBlockNames().size()
 			+ "]";
 	}
 	
@@ -151,7 +158,6 @@ public final class SearchHack extends Hack
 	@Override
 	public void onUpdate()
 	{
-		Block currentBlock = block.getBlock();
 		DimensionType dimension = MC.world.getDimension();
 		HashSet<ChunkPos> chunkUpdates = clearChunksToUpdate();
 		boolean searchersChanged = false;
@@ -163,7 +169,7 @@ public final class SearchHack extends Hack
 			ChunkPos searcherPos = searcher.getPos();
 			
 			// wrong block
-			if(currentBlock != searcher.getBlock())
+			if(!blocks.getBlockNames().equals(searcher.getBlockNames()))
 				remove = true;
 			
 			// wrong dimension
@@ -194,7 +200,7 @@ public final class SearchHack extends Hack
 				continue;
 			
 			ExposedBlockChunkSearcher searcher =
-				new ExposedBlockChunkSearcher(chunk, currentBlock, dimension);
+				new ExposedBlockChunkSearcher(chunk, blocks.getBlockNames(), dimension);
 			searchers.put(chunkPos, searcher);
 			searcher.startSearching(threadPool);
 			searchersChanged = true;

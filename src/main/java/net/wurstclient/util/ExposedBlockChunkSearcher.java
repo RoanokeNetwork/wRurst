@@ -8,6 +8,7 @@
 package net.wurstclient.util;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -27,16 +28,16 @@ import net.wurstclient.WurstClient;
 public final class ExposedBlockChunkSearcher
 {
     private final Chunk chunk;
-    private final Block block;
+    private final List<String> blocks;
     private final DimensionType dimension;
     private final ArrayList<BlockPos> matchingBlocks = new ArrayList<>();
     private ExposedBlockChunkSearcher.Status status = Status.IDLE;
     private Future<?> future;
 
-    public ExposedBlockChunkSearcher(Chunk chunk, Block block, DimensionType dimension)
+    public ExposedBlockChunkSearcher(Chunk chunk, List<String> blocks, DimensionType dimension)
     {
         this.chunk = chunk;
-        this.block = block;
+        this.blocks = blocks;
         this.dimension = dimension;
     }
 
@@ -83,7 +84,7 @@ public final class ExposedBlockChunkSearcher
                             || !BlockUtils.isOpaqueFullCube(pos.south())))
                         continue;
 
-                    if(!this.block.equals(block))
+                    if(!blocks.contains(BlockUtils.getName(block)))
                         continue;
 
                     matchingBlocks.add(pos);
@@ -124,9 +125,9 @@ public final class ExposedBlockChunkSearcher
         return chunk.getPos();
     }
 
-    public Block getBlock()
+    public List<String> getBlockNames()
     {
-        return block;
+        return blocks;
     }
 
     public DimensionType getDimension()
