@@ -7,15 +7,23 @@
  */
 package net.wurstclient.hacks;
 
+import net.minecraft.client.network.AbstractClientPlayerEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.packet.c2s.play.PlayerInteractEntityC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.wurstclient.Category;
 import net.wurstclient.SearchTags;
 import net.wurstclient.events.UpdateListener;
 import net.wurstclient.hack.Hack;
+import net.wurstclient.settings.CheckboxSetting;
 import net.wurstclient.settings.EnumSetting;
 import net.wurstclient.settings.SliderSetting;
 import net.wurstclient.settings.SliderSetting.ValueDisplay;
+import net.wurstclient.util.FakePlayerEntity;
+
+import java.util.ArrayList;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @SearchTags({"auto leave", "AutoDisconnect", "auto disconnect", "AutoQuit",
 	"auto quit"})
@@ -35,7 +43,14 @@ public final class AutoLeaveHack extends Hack implements UpdateListener
 			+ "\u00a7lSelfHurt\u00a7r mode sends the packet for attacking another player, but with yourself as both the attacker and the target. This causes the server to kick you.\n"
 			+ "Bypasses both CombatLog and NoCheat+.",
 		Mode.values(), Mode.QUIT);
-	
+
+	private final CheckboxSetting leaveIfPlayer = new CheckboxSetting(
+			"Leave if a player appears",
+			"Leave the game if a player comes into your render distance.",
+			false);
+
+	private final ArrayList<PlayerEntity> players = new ArrayList<>();
+
 	public AutoLeaveHack()
 	{
 		super("AutoLeave");
@@ -43,6 +58,7 @@ public final class AutoLeaveHack extends Hack implements UpdateListener
 		setCategory(Category.COMBAT);
 		addSetting(health);
 		addSetting(mode);
+		addSetting(leaveIfPlayer);
 	}
 	
 	@Override
@@ -66,6 +82,7 @@ public final class AutoLeaveHack extends Hack implements UpdateListener
 	@Override
 	public void onUpdate()
 	{
+		boolean shouldLeave = false;
 		// check gamemode
 		if(MC.player.getAbilities().creativeMode)
 			return;
@@ -76,9 +93,24 @@ public final class AutoLeaveHack extends Hack implements UpdateListener
 			return;
 		
 		// check health
-		if(MC.player.getHealth() > health.getValueF() * 2F)
-			return;
-		
+		if(MC.player.getHealth() < health.getValueF() * 2F)
+			shouldLeave = true;
+
+		if (leaveIfPlayer.isChecked()) {
+			players.clear();
+			Stream<AbstractClientPlayerEntity> stream = MC.world.getPlayers()
+					.parallelStream().filter(e -> !e.isRemoved() && e.getHealth() > 0)
+					.filter(e -> e != MC.player)
+					.filter(e -> !(e instanceof FakePlayerEntity))
+					.filter(e -> Math.abs(e.getY() - MC.player.getY()) <= 1e6);
+			players.addAll(stream.collect(Collectors.toList()));
+			if (!players.isEmpty()) {
+				shouldLeave = true;
+			}
+		}
+
+		if (!shouldLeave) return;
+
 		// leave server
 		switch(mode.getSelected())
 		{
